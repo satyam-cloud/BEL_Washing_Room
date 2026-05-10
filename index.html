@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<meta name="theme-color" content="#0a0f1e" />
+<title>BEL Washing Machine Room — Key Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700&family=Orbitron:wght@500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<style>
+  :root {
+    --bg-deep:    #060b18;
+    --bg-panel:   #0d1628;
+    --bg-card:    #111e35;
+    --bg-input:   #0a1525;
+    --accent:     #00c8ff;
+    --accent2:    #0077ff;
+    --accent3:    #00ffb3;
+    --danger:     #ff4e6a;
+    --warn:       #ffaa00;
+    --success:    #00e57a;
+    --text:       #e8f4ff;
+    --text-muted: #6a8aaa;
+    --text-dim:   #3a5570;
+    --border:     rgba(0,200,255,0.15);
+    --border-glow:rgba(0,200,255,0.4);
+    --glow-blue:  0 0 18px rgba(0,200,255,0.35), 0 0 40px rgba(0,119,255,0.18);
+    --glow-green: 0 0 18px rgba(0,229,122,0.35), 0 0 40px rgba(0,255,179,0.18);
+    --glow-red:   0 0 18px rgba(255,78,106,0.35), 0 0 40px rgba(255,40,80,0.18);
+    --radius:     14px;
+    --radius-sm:  8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Exo 2', sans-serif;
+    background: var(--bg-deep);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── ANIMATED BACKGROUND ── */
+  .bg-grid {
+    position: fixed; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(rgba(0,200,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,200,255,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    animation: gridDrift 20s linear infinite;
+  }
+  @keyframes gridDrift { from{background-position:0 0} to{background-position:40px 40px} }
+
+  .bg-orb {
+    position: fixed; border-radius: 50%; filter: blur(80px); z-index: 0; pointer-events: none;
+  }
+  .orb1 { width:400px;height:400px;background:rgba(0,119,255,0.12);top:-100px;right:-100px;animation:orbFloat 8s ease-in-out infinite; }
+  .orb2 { width:300px;height:300px;background:rgba(0,200,255,0.08);bottom:-80px;left:-80px;animation:orbFloat 10s ease-in-out infinite reverse; }
+  .orb3 { width:200px;height:200px;background:rgba(0,229,122,0.06);top:50%;left:50%;animation:orbFloat 12s ease-in-out infinite 3s; }
+  @keyframes orbFloat { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-30px) scale(1.05)} }
+
+  /* ── APP SHELL ── */
+  .app {
+    position: relative; z-index: 1;
+    max-width: 480px; margin: 0 auto;
+    padding: 0 0 100px;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    padding: 28px 20px 20px;
+    background: linear-gradient(180deg, rgba(0,200,255,0.07) 0%, transparent 100%);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 4px;
+  }
+  .header-top { display: flex; align-items: center; gap: 14px; margin-bottom: 6px; }
+  .header-logo {
+    width: 52px; height: 52px;
+    background: linear-gradient(135deg, #0a1f3a, #0d2d54);
+    border: 1px solid var(--border-glow);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: var(--glow-blue);
+    flex-shrink: 0;
+    animation: logoPulse 3s ease-in-out infinite;
+  }
+  @keyframes logoPulse {
+    0%,100%{box-shadow:var(--glow-blue)}
+    50%{box-shadow:0 0 30px rgba(0,200,255,0.55),0 0 60px rgba(0,119,255,0.28)}
+  }
+  .header-logo i { font-size: 22px; color: var(--accent); }
+  .header-title { flex: 1; }
+  .header-title h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 14px; font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+    text-shadow: 0 0 12px rgba(0,200,255,0.6);
+  }
+  .header-title p { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .header-meta { display: flex; align-items: center; justify-content: space-between; }
+  .live-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.06em;
+    color: var(--success); text-transform: uppercase;
+  }
+  .live-dot { width:7px;height:7px;background:var(--success);border-radius:50%;animation:livePulse 1.4s infinite; }
+  @keyframes livePulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.8)} }
+  .clock { font-family:'Orbitron',sans-serif;font-size:12px;color:var(--accent);letter-spacing:0.08em; }
+  .synced-tag {
+    display:inline-flex;align-items:center;gap:5px;
+    font-size:10px;color:var(--accent2);
+    background:rgba(0,119,255,0.12);
+    border:1px solid rgba(0,119,255,0.25);
+    padding:3px 10px;border-radius:20px;margin-top:6px;
+  }
+
+  /* ── TABS ── */
+  .tabs-wrap {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(6,11,24,0.92);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 12px;
+    display: flex; gap: 2px;
+  }
+  .tab {
+    flex: 1; padding: 13px 4px; text-align: center;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.05em;
+    color: var(--text-dim); cursor: pointer; text-transform: uppercase;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s; display:flex;align-items:center;justify-content:center;gap:5px;
+  }
+  .tab i { font-size: 13px; }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); text-shadow: 0 0 10px rgba(0,200,255,0.5); }
+  .tab-panel { display: none; padding: 20px 16px; }
+  .tab-panel.active { display: block; }
+
+  /* ── CARDS ── */
+  .glass-card {
+    background: linear-gradient(135deg, rgba(17,30,53,0.9), rgba(13,22,40,0.95));
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    position: relative; overflow: hidden;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  .glass-card::before {
+    content:''; position:absolute; inset:0; border-radius:inherit;
+    background: linear-gradient(135deg, rgba(0,200,255,0.03) 0%, transparent 60%);
+    pointer-events:none;
+  }
+  .glass-card.glow-blue { border-color:rgba(0,200,255,0.35);box-shadow:var(--glow-blue); }
+  .glass-card.glow-green { border-color:rgba(0,229,122,0.35);box-shadow:var(--glow-green); }
+  .glass-card.glow-red { border-color:rgba(255,78,106,0.35);box-shadow:var(--glow-red); }
+
+  .section-label {
+    font-size: 9px; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--text-dim);
+    margin-bottom: 10px; display:flex;align-items:center;gap:8px;
+  }
+  .section-label::after { content:''; flex:1;height:1px;background:var(--border); }
+
+  /* ── STATUS CARD ── */
+  .status-row { display:flex;align-items:flex-start;justify-content:space-between;gap:12px; }
+  .status-name { font-size:18px;font-weight:600;color:var(--text);letter-spacing:-0.01em; }
+  .status-meta { font-size:12px;color:var(--text-muted);margin-top:5px;line-height:1.6; }
+  .status-badge {
+    font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;
+    padding:5px 12px;border-radius:20px;white-space:nowrap;flex-shrink:0;
+  }
+  .badge-free { background:rgba(0,229,122,0.12);color:var(--success);border:1px solid rgba(0,229,122,0.3); }
+  .badge-occupied { background:rgba(255,78,106,0.12);color:var(--danger);border:1px solid rgba(255,78,106,0.3); }
+
+  /* ── FORM ELEMENTS ── */
+  .form-grid { display:grid;grid-template-columns:1fr 1fr;gap:12px; }
+  .form-grid .full { grid-column:1/-1; }
+  .field label { display:block;font-size:10px;font-weight:600;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase; }
+  .field input, .field select {
+    width:100%; background:var(--bg-input);
+    border:1px solid var(--border);
+    border-radius:var(--radius-sm);
+    color:var(--text); font-family:'Exo 2',sans-serif;
+    font-size:14px; padding:11px 14px;
+    outline:none; transition:border-color 0.2s,box-shadow 0.2s;
+    -webkit-appearance:none;
+  }
+  .field input:focus, .field select:focus {
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px rgba(0,200,255,0.12), 0 0 16px rgba(0,200,255,0.15);
+  }
+  .field input::placeholder { color:var(--text-dim); }
+  .field input[type="datetime-local"] { font-size:12px; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    padding:12px 22px;border-radius:var(--radius-sm);
+    font-family:'Exo 2',sans-serif;font-size:13px;font-weight:600;
+    letter-spacing:0.03em;cursor:pointer;border:none;
+    transition:all 0.2s;position:relative;overflow:hidden;
+  }
+  .btn::after {
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(135deg,rgba(255,255,255,0.08),transparent);
+    pointer-events:none;
+  }
+  .btn-primary {
+    background:linear-gradient(135deg,#0057cc,#0099ee);
+    color:#fff;
+    box-shadow:0 4px 20px rgba(0,119,255,0.35),0 0 0 1px rgba(0,200,255,0.2);
+  }
+  .btn-primary:hover { box-shadow:0 6px 28px rgba(0,119,255,0.55),0 0 20px rgba(0,200,255,0.25); transform:translateY(-1px); }
+  .btn-primary:active { transform:scale(0.97); }
+  .btn-primary:disabled { opacity:0.5;cursor:not-allowed;transform:none; }
+  .btn-danger-soft {
+    background:rgba(255,78,106,0.1);color:var(--danger);
+    border:1px solid rgba(255,78,106,0.35);
+  }
+  .btn-danger-soft:hover { background:rgba(255,78,106,0.2);box-shadow:0 0 16px rgba(255,78,106,0.25); }
+  .btn-ghost {
+    background:rgba(255,255,255,0.04);color:var(--text-muted);
+    border:1px solid var(--border);
+  }
+  .btn-ghost:hover { background:rgba(255,255,255,0.08); }
+  .btn i { font-size:14px; }
+  .btn-full { width:100%; }
+  .btn-spin i { animation:spin 1s linear infinite; }
+  @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+
+  /* ── SLOTS GRID ── */
+  .slots-grid { display:grid;grid-template-columns:1fr 1fr;gap:10px; }
+  .slot {
+    background:var(--bg-card);border:1px solid var(--border);
+    border-radius:var(--radius-sm);padding:12px;cursor:pointer;
+    transition:all 0.2s;
+  }
+  .slot:hover { border-color:var(--accent);box-shadow:0 0 14px rgba(0,200,255,0.2); }
+  .slot.selected { border-color:var(--accent);background:rgba(0,200,255,0.06);box-shadow:0 0 20px rgba(0,200,255,0.22); }
+  .slot.booked { background:rgba(255,78,106,0.06);border-color:rgba(255,78,106,0.3);cursor:default; }
+  .slot-time { font-size:12px;font-weight:600;color:var(--text); }
+  .slot-label { font-size:10px;color:var(--text-dim);margin-top:3px; }
+  .slot-booker { font-size:10px;color:var(--danger);margin-top:4px;font-weight:600; }
+
+  /* ── HISTORY ITEMS ── */
+  .hist-item {
+    display:flex;align-items:center;gap:12px;
+    padding:12px 14px;
+    background:var(--bg-card);border:1px solid var(--border);
+    border-radius:var(--radius-sm);
+    transition:border-color 0.2s;
+  }
+  .hist-item:hover { border-color:rgba(0,200,255,0.25); }
+  .hist-avatar {
+    width:38px;height:38px;border-radius:50%;
+    background:linear-gradient(135deg,#0a2040,#0d3060);
+    border:1px solid rgba(0,200,255,0.25);
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:700;color:var(--accent);flex-shrink:0;
+    box-shadow:0 0 10px rgba(0,200,255,0.15);
+  }
+  .hist-info { flex:1;min-width:0; }
+  .hist-name { font-size:13px;font-weight:600;color:var(--text); }
+  .hist-detail { font-size:10px;color:var(--text-muted);margin-top:3px;line-height:1.5; }
+  .hist-dur { font-size:10px;color:var(--text-dim);flex-shrink:0;text-align:right; }
+
+  /* ── DATE NAV ── */
+  .date-nav { display:flex;align-items:center;gap:10px;margin-bottom:14px; }
+  .date-nav button {
+    width:36px;height:36px;border-radius:var(--radius-sm);
+    background:var(--bg-card);border:1px solid var(--border);
+    color:var(--text-muted);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:all 0.2s;font-size:14px;
+  }
+  .date-nav button:hover { border-color:var(--accent);color:var(--accent);box-shadow:0 0 10px rgba(0,200,255,0.2); }
+  .date-nav span { flex:1;text-align:center;font-size:13px;font-weight:600;color:var(--text); }
+
+  /* ── PREBOOK FORM ── */
+  .prebook-form {
+    display:none;margin-top:14px;
+    background:rgba(0,200,255,0.04);
+    border:1px solid rgba(0,200,255,0.2);
+    border-radius:var(--radius);padding:16px;
+  }
+  .prebook-form.show { display:block; }
+
+  /* ── UPCOMING ITEMS ── */
+  .upcoming-item {
+    display:flex;align-items:center;gap:10px;
+    padding:10px 12px;border-radius:var(--radius-sm);
+    background:rgba(0,200,255,0.04);border:1px solid rgba(0,200,255,0.12);
+    margin-bottom:8px;
+  }
+  .upcoming-dot { width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;animation:livePulse 2s infinite; }
+  .upcoming-info { flex:1;min-width:0; }
+  .upcoming-name { font-size:12px;font-weight:600;color:var(--text); }
+  .upcoming-time { font-size:10px;color:var(--text-muted);margin-top:2px; }
+
+  /* ── EMPTY STATE ── */
+  .empty-state { text-align:center;padding:30px 20px;color:var(--text-dim);font-size:13px; }
+  .empty-state i { font-size:32px;display:block;margin:0 auto 10px;opacity:0.3; }
+
+  /* ── LOADING ── */
+  .loading-screen {
+    position:fixed;inset:0;z-index:100;
+    background:var(--bg-deep);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+  }
+  .loading-ring {
+    width:56px;height:56px;border-radius:50%;
+    border:3px solid var(--border);
+    border-top-color:var(--accent);
+    animation:spin 0.9s linear infinite;
+    box-shadow:0 0 20px rgba(0,200,255,0.3);
+  }
+  .loading-text { font-family:'Orbitron',sans-serif;font-size:11px;color:var(--accent);letter-spacing:0.1em; }
+
+  /* ── TOAST ── */
+  .toast {
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);
+    background:rgba(13,22,40,0.95);backdrop-filter:blur(16px);
+    border:1px solid var(--border-glow);
+    color:var(--text);font-size:13px;font-weight:500;
+    padding:12px 22px;border-radius:30px;
+    box-shadow:var(--glow-blue);
+    transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1),opacity 0.35s;
+    opacity:0;z-index:200;white-space:nowrap;
+  }
+  .toast.show { transform:translateX(-50%) translateY(0);opacity:1; }
+
+  /* ── FOOTER ── */
+  .footer {
+    text-align:center;padding:20px;
+    font-size:10px;color:var(--text-dim);
+    border-top:1px solid var(--border);
+    margin-top:10px;letter-spacing:0.04em;
+  }
+  .footer span { color:var(--accent);font-weight:600; }
+
+  /* ── DIVIDER ── */
+  .divider { height:1px;background:var(--border);margin:16px 0; }
+
+  /* ── PULSE LINE ── */
+  .glow-line {
+    height:2px;
+    background:linear-gradient(90deg,transparent,var(--accent),transparent);
+    margin:0;animation:scanline 3s ease-in-out infinite;
+    box-shadow:0 0 8px var(--accent);
+  }
+  @keyframes scanline { 0%,100%{opacity:0.3}50%{opacity:1} }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width:4px; }
+  ::-webkit-scrollbar-track { background:var(--bg-deep); }
+  ::-webkit-scrollbar-thumb { background:var(--border-glow);border-radius:4px; }
+
+  /* ── STACK ── */
+  .stack { display:flex;flex-direction:column;gap:10px; }
+
+  /* ── RESPONSIVE adjustments ── */
+  @media(max-width:360px) {
+    .form-grid { grid-template-columns:1fr; }
+    .form-grid .full { grid-column:1; }
+    .slots-grid { grid-template-columns:1fr 1fr; }
+    .header-title h1 { font-size:12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-orb orb1"></div>
+<div class="bg-orb orb2"></div>
+<div class="bg-orb orb3"></div>
+
+<!-- LOADING SCREEN -->
+<div class="loading-screen" id="loading-screen">
+  <div class="loading-ring"></div>
+  <div class="loading-text">CONNECTING TO SERVER...</div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app" style="display:none;">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-top">
+      <div class="header-logo"><i class="fa-solid fa-key"></i></div>
+      <div class="header-title">
+        <h1>BEL — WASHING ROOM</h1>
+        <p>Key Management System &nbsp;&bull;&nbsp; Bharat Electronics Limited</p>
+      </div>
+    </div>
+    <div class="glow-line"></div>
+    <div class="header-meta" style="margin-top:10px;">
+      <div class="live-badge"><div class="live-dot"></div>Live</div>
+      <div class="clock" id="live-clock">00:00:00</div>
+    </div>
+    <div><span class="synced-tag"><i class="fa-solid fa-cloud" style="font-size:9px"></i>Synced via JSONBin</span></div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs-wrap">
+    <div class="tab active" onclick="switchTab('status')"><i class="fa-solid fa-house"></i>Status</div>
+    <div class="tab" onclick="switchTab('issue')"><i class="fa-solid fa-key"></i>Issue</div>
+    <div class="tab" onclick="switchTab('prebook')"><i class="fa-solid fa-calendar"></i>Book</div>
+    <div class="tab" onclick="switchTab('history')"><i class="fa-solid fa-clock-rotate-left"></i>History</div>
+  </div>
+
+  <!-- STATUS TAB -->
+  <div id="tab-status" class="tab-panel active">
+    <div class="section-label">Current key holder</div>
+    <div class="glass-card glow-green" id="status-card">
+      <div class="status-row">
+        <div style="flex:1;min-width:0;">
+          <div class="status-name" id="status-name">Key is Available</div>
+          <div class="status-meta" id="status-meta">Washing room is free to use</div>
+        </div>
+        <div class="status-badge badge-free" id="status-badge">FREE</div>
+      </div>
+      <div id="return-section" style="margin-top:14px;display:none;">
+        <button class="btn btn-danger-soft" onclick="returnKey()">
+          <i class="fa-solid fa-right-from-bracket"></i> Mark as Returned
+        </button>
+      </div>
+    </div>
+
+    <div style="height:20px;"></div>
+    <div class="section-label">Upcoming pre-bookings</div>
+    <div id="upcoming-list"><div class="empty-state"><i class="fa-regular fa-calendar"></i>No upcoming bookings</div></div>
+  </div>
+
+  <!-- ISSUE TAB -->
+  <div id="tab-issue" class="tab-panel">
+    <div class="section-label">Issue key to resident</div>
+    <div class="glass-card">
+      <div class="form-grid">
+        <div class="field full">
+          <label>Full Name</label>
+          <input type="text" id="iss-name" placeholder="e.g. Ramesh Kumar" />
+        </div>
+        <div class="field">
+          <label>Quarter No.</label>
+          <input type="text" id="iss-quarter" placeholder="e.g. B-204" />
+        </div>
+        <div class="field">
+          <label>Mobile No.</label>
+          <input type="tel" id="iss-mob" placeholder="e.g. 9876543210" />
+        </div>
+        <div class="field">
+          <label>Issue Date &amp; Time</label>
+          <input type="datetime-local" id="iss-time" />
+        </div>
+        <div class="field">
+          <label>Expected Return</label>
+          <input type="datetime-local" id="iss-return" />
+        </div>
+      </div>
+      <div style="margin-top:16px;">
+        <button class="btn btn-primary btn-full" id="issue-btn" onclick="issueKey()">
+          <i class="fa-solid fa-key"></i> Issue Key
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PREBOOK TAB -->
+  <div id="tab-prebook" class="tab-panel">
+    <div class="section-label">Select a 3-hour slot</div>
+    <div class="date-nav">
+      <button onclick="changeDay(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+      <span id="slot-date-label"></span>
+      <button onclick="changeDay(1)"><i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+    <div class="slots-grid" id="slots-grid"></div>
+    <div class="prebook-form" id="prebook-form">
+      <div class="section-label" style="margin-bottom:12px;">Booking for: <span id="selected-slot-label" style="color:var(--accent);text-transform:none;font-size:11px;letter-spacing:0;"></span></div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Full Name</label>
+          <input type="text" id="pb-name" placeholder="Name" />
+        </div>
+        <div class="field">
+          <label>Quarter No.</label>
+          <input type="text" id="pb-quarter" placeholder="e.g. A-112" />
+        </div>
+        <div class="field full">
+          <label>Mobile No.</label>
+          <input type="tel" id="pb-mob" placeholder="10-digit number" />
+        </div>
+      </div>
+      <div style="margin-top:14px;display:flex;gap:10px;">
+        <button class="btn btn-primary" id="prebook-btn" onclick="confirmPrebook()">
+          <i class="fa-solid fa-calendar-check"></i> Confirm
+        </button>
+        <button class="btn btn-ghost" onclick="cancelSlot()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY TAB -->
+  <div id="tab-history" class="tab-panel">
+    <div class="section-label">Recent key issues (last 5)</div>
+    <div class="stack" id="history-list"><div class="empty-state"><i class="fa-solid fa-clock-rotate-left"></i>No history yet</div></div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    &copy; <span>Satyam Singh Gurjar</span> &nbsp;&bull;&nbsp; BEL Washing Machine Room Key Manager &nbsp;&bull;&nbsp; All rights reserved
+  </div>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+const DB_URL = 'https://testingroom-1bf3f-default-rtdb.firebaseio.com/state';
+
+let state = { current: null, bookings: [], history: [] };
+let selectedSlot = null;
+let slotDayOffset = 1;
+let isSaving = false;
+
+async function fetchState() {
+  try {
+    const r = await fetch(DB_URL + '.json');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    if (d) {
+      state = { current: d.current||null, bookings: d.bookings||[], history: d.history||[] };
+    }
+    renderStatus();
+    renderSlots();
+    renderHistory();
+  } catch(e) {
+    console.error('fetchState exception', e);
+    showToast('Could not reach server. Retrying...');
+    setTimeout(fetchState, 5000);
+  }
+}
+
+async function saveState() {
+  if (isSaving) return;
+  isSaving = true;
+  try {
+    const r = await fetch(DB_URL + '.json', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(state)
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+  } catch(e) {
+    console.error('saveState exception', e);
+    showToast('Save failed. Retrying...');
+    setTimeout(saveState, 4000);
+  }
+  isSaving = false;
+}
+
+function fmt(dt) {
+  if (!dt) return '—';
+  return new Date(dt).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',hour12:true});
+}
+function initials(n) { return n.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+function setBtnLoading(id, loading) {
+  const b = document.getElementById(id);
+  if (!b) return;
+  b.disabled = loading;
+  if (loading) { b.classList.add('btn-spin'); b.dataset.orig = b.innerHTML; b.innerHTML = '<i class="fa-solid fa-spinner"></i> Saving...'; }
+  else if (b.dataset.orig) { b.classList.remove('btn-spin'); b.innerHTML = b.dataset.orig; }
+}
+
+function switchTab(name) {
+  const names = ['status','issue','prebook','history'];
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',names[i]===name));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if (name==='status') renderStatus();
+  if (name==='prebook') renderSlots();
+  if (name==='history') renderHistory();
+}
+
+function renderStatus() {
+  const c = state.current;
+  const card = document.getElementById('status-card');
+  const badge = document.getElementById('status-badge');
+  const ret = document.getElementById('return-section');
+  if (c) {
+    card.className = 'glass-card glow-red';
+    document.getElementById('status-name').textContent = c.name;
+    document.getElementById('status-meta').innerHTML =
+      `<i class="fa-solid fa-building" style="font-size:10px;margin-right:4px;"></i>Quarter ${c.quarter} &nbsp;&bull;&nbsp; <i class="fa-solid fa-phone" style="font-size:10px;margin-right:4px;"></i>${c.mob}<br><i class="fa-solid fa-arrow-right-from-bracket" style="font-size:10px;margin-right:4px;"></i>Issued: ${fmt(c.issued)}` +
+      (c.expectedReturn ? `&nbsp;&bull;&nbsp;<i class="fa-solid fa-clock" style="font-size:10px;margin-right:4px;"></i>Return by: ${fmt(c.expectedReturn)}` : '');
+    badge.className = 'status-badge badge-occupied'; badge.textContent = 'IN USE';
+    ret.style.display = 'block';
+  } else {
+    card.className = 'glass-card glow-green';
+    document.getElementById('status-name').textContent = 'Key is Available';
+    document.getElementById('status-meta').textContent = 'Washing room is free to use';
+    badge.className = 'status-badge badge-free'; badge.textContent = 'FREE';
+    ret.style.display = 'none';
+  }
+  const now = new Date();
+  const upcoming = state.bookings.filter(b=>new Date(b.slotStart)>now).sort((a,b)=>new Date(a.slotStart)-new Date(b.slotStart)).slice(0,4);
+  const ul = document.getElementById('upcoming-list');
+  if (!upcoming.length) { ul.innerHTML='<div class="empty-state"><i class="fa-regular fa-calendar"></i>No upcoming bookings</div>'; return; }
+  ul.innerHTML = upcoming.map(b=>`<div class="upcoming-item">
+    <div class="upcoming-dot"></div>
+    <div class="upcoming-info">
+      <div class="upcoming-name">${b.name} &nbsp;<span style="font-weight:400;color:var(--text-muted);font-size:10px;">· ${b.quarter}</span></div>
+      <div class="upcoming-time"><i class="fa-regular fa-clock" style="font-size:9px;margin-right:3px;"></i>${fmt(b.slotStart)} – ${fmt(b.slotEnd)}</div>
+    </div>
+  </div>`).join('');
+}
+
+async function issueKey() {
+  const name    = document.getElementById('iss-name').value.trim();
+  const quarter = document.getElementById('iss-quarter').value.trim();
+  const mob     = document.getElementById('iss-mob').value.trim();
+  const issued  = document.getElementById('iss-time').value;
+  const ret     = document.getElementById('iss-return').value;
+  if (!name||!quarter||!mob||!issued) { showToast('Please fill all required fields'); return; }
+  if (state.current) { showToast('Key already issued! Return it first.'); return; }
+  setBtnLoading('issue-btn', true);
+  state.current = { name, quarter, mob, issued, expectedReturn: ret };
+  await saveState();
+  setBtnLoading('issue-btn', false);
+  showToast('Key issued to ' + name);
+  ['iss-name','iss-quarter','iss-mob','iss-time','iss-return'].forEach(id=>document.getElementById(id).value='');
+  setDefaultTimes();
+  switchTab('status');
+}
+
+async function returnKey() {
+  if (!state.current) return;
+  const c = state.current;
+  c.returned = new Date().toISOString();
+  state.history.unshift(c);
+  if (state.history.length > 5) state.history = state.history.slice(0,5);
+  state.current = null;
+  await saveState();
+  showToast('Key returned by ' + c.name);
+  renderStatus();
+}
+
+function getSlotDate(offset) {
+  const d = new Date(); d.setDate(d.getDate()+offset);
+  return d.toISOString().slice(0,10);
+}
+
+function renderSlots() {
+  const dateStr = getSlotDate(slotDayOffset);
+  const d = new Date(dateStr+'T00:00:00');
+  document.getElementById('slot-date-label').textContent =
+    d.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'long',year:'numeric'});
+  const now = new Date();
+  const hours = [0,3,6,9,12,15,18,21];
+  document.getElementById('slots-grid').innerHTML = hours.map(h=>{
+    const start = new Date(dateStr+'T'+String(h).padStart(2,'0')+':00:00');
+    const end   = new Date(start.getTime()+3*3600000);
+    if (end<=now) return '';
+    const iso = start.toISOString();
+    const booked = state.bookings.find(b=>b.slotStart===iso);
+    const fmtT = t=>t.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true});
+    if (booked) return `<div class="slot booked">
+      <div class="slot-time">${fmtT(start)}</div>
+      <div class="slot-label">${fmtT(end)}</div>
+      <div class="slot-booker"><i class="fa-solid fa-lock" style="font-size:9px;"></i> ${booked.name}</div>
+    </div>`;
+    const sel = selectedSlot===iso;
+    return `<div class="slot${sel?' selected':''}" onclick="selectSlot('${iso}','${fmtT(start)} – ${fmtT(end)}')">
+      <div class="slot-time">${fmtT(start)}</div>
+      <div class="slot-label">${fmtT(end)}</div>
+      <div class="slot-label" style="color:var(--accent);margin-top:5px;font-size:9px;"><i class="fa-regular fa-hand-pointer"></i> Tap to book</div>
+    </div>`;
+  }).join('');
+}
+
+function selectSlot(iso, label) {
+  selectedSlot = iso;
+  document.getElementById('selected-slot-label').textContent = label;
+  document.getElementById('prebook-form').classList.add('show');
+  renderSlots();
+  setTimeout(()=>document.getElementById('prebook-form').scrollIntoView({behavior:'smooth',block:'nearest'}),100);
+}
+
+function cancelSlot() {
+  selectedSlot = null;
+  document.getElementById('prebook-form').classList.remove('show');
+  ['pb-name','pb-quarter','pb-mob'].forEach(id=>document.getElementById(id).value='');
+  renderSlots();
+}
+
+function changeDay(dir) {
+  slotDayOffset = Math.max(1, slotDayOffset+dir);
+  cancelSlot();
+}
+
+async function confirmPrebook() {
+  const name    = document.getElementById('pb-name').value.trim();
+  const quarter = document.getElementById('pb-quarter').value.trim();
+  const mob     = document.getElementById('pb-mob').value.trim();
+  if (!name||!quarter||!mob) { showToast('Please fill all fields'); return; }
+  if (!selectedSlot) return;
+  setBtnLoading('prebook-btn', true);
+  const end = new Date(new Date(selectedSlot).getTime()+3*3600000).toISOString();
+  state.bookings.push({ name, quarter, mob, slotStart:selectedSlot, slotEnd:end });
+  await saveState();
+  setBtnLoading('prebook-btn', false);
+  showToast('Slot booked for '+name);
+  cancelSlot();
+}
+
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  if (!state.history.length) { list.innerHTML='<div class="empty-state"><i class="fa-solid fa-clock-rotate-left"></i>No history yet</div>'; return; }
+  list.innerHTML = state.history.map(h=>{
+    const dur = h.returned&&h.issued ? Math.round((new Date(h.returned)-new Date(h.issued))/60000)+' min' : '—';
+    return `<div class="hist-item">
+      <div class="hist-avatar">${initials(h.name)}</div>
+      <div class="hist-info">
+        <div class="hist-name">${h.name} <span style="font-size:10px;font-weight:400;color:var(--text-muted);">· ${h.quarter}</span></div>
+        <div class="hist-detail"><i class="fa-solid fa-phone" style="font-size:9px;"></i> ${h.mob}<br><i class="fa-solid fa-arrow-right-from-bracket" style="font-size:9px;"></i> ${fmt(h.issued)} &rarr; ${fmt(h.returned)}</div>
+      </div>
+      <div class="hist-dur">${dur}</div>
+    </div>`;
+  }).join('');
+}
+
+function updateClock() {
+  const el = document.getElementById('live-clock');
+  if (el) el.textContent = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});
+}
+
+function setDefaultTimes() {
+  const now = new Date();
+  const pad = n=>String(n).padStart(2,'0');
+  const local = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  const retTime = new Date(now.getTime()+3*3600000);
+  const local2 = `${retTime.getFullYear()}-${pad(retTime.getMonth()+1)}-${pad(retTime.getDate())}T${pad(retTime.getHours())}:${pad(retTime.getMinutes())}`;
+  const e1 = document.getElementById('iss-time'); if(e1) e1.value = local;
+  const e2 = document.getElementById('iss-return'); if(e2) e2.value = local2;
+}
+
+async function autoRefresh() {
+  await fetchState();
+  const active = document.querySelector('.tab.active');
+  if (!active) return;
+  const idx = [...document.querySelectorAll('.tab')].indexOf(active);
+  if (idx===0) renderStatus();
+  if (idx===2) renderSlots();
+  if (idx===3) renderHistory();
+}
+
+(async function init() {
+  await fetchState();
+  document.getElementById('loading-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  renderStatus();
+  setDefaultTimes();
+  updateClock();
+  setInterval(updateClock, 1000);
+  setInterval(autoRefresh, 30000);
+})();
+</script>
+</body>
+</html>
